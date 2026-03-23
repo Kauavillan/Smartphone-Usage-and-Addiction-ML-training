@@ -8,7 +8,7 @@ from imblearn.under_sampling import RandomUnderSampler
 #                         Leitura da base e resumo
 # =============================================================================
 
-base = pd.read_csv("raw_dataset.csv")
+base = pd.read_csv("datasets/raw_dataset.csv")
 resumo = base.describe(include="all")
 
 
@@ -132,7 +132,7 @@ print(classe_balanceada.value_counts())
 
 df_balanceado = previsores_balanceado.copy()
 df_balanceado[col_classe] = classe_balanceada
-df_balanceado.to_csv("dataset_preprocessado_balanceado.csv", index=False)
+df_balanceado.to_csv("datasets/dataset_preprocessado_balanceado.csv", index=False)
 
 
 # =============================================================================
