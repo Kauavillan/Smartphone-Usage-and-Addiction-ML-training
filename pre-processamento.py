@@ -5,9 +5,16 @@ from imblearn.under_sampling import RandomUnderSampler
 
 
 # =============================================================================
-#                         Leitura da base e resumo
+#                    Configuração de colunas opcionais
 # =============================================================================
 
+considerar_daily_screen_time_hours = True
+considerar_addiction_level = False
+
+
+# =============================================================================
+#                         Leitura da base e resumo
+# =============================================================================
 base = pd.read_csv("datasets/raw_dataset.csv")
 resumo = base.describe(include="all")
 
@@ -19,6 +26,7 @@ resumo = base.describe(include="all")
 # Colunas numéricas para tratamento
 colunas_numericas = [
 	"age",
+	"daily_screen_time_hours",
 	"social_media_hours",
 	"gaming_hours",
 	"work_study_hours",
@@ -33,6 +41,7 @@ colunas_categoricas = [
 	"gender",
 	"stress_level",
 	"academic_work_impact",
+	"addiction_level",
 ]
 
 # Regra simples de validação: valores numéricos negativos são inválidos
@@ -58,7 +67,6 @@ for coluna in colunas_categoricas:
 cols_previsores = [
 	"age",
 	"gender",
-	"daily_screen_time_hours",
 	"social_media_hours",
 	"gaming_hours",
 	"work_study_hours",
@@ -69,6 +77,13 @@ cols_previsores = [
 	"stress_level",
 	"academic_work_impact",
 ]
+
+if considerar_daily_screen_time_hours:
+	cols_previsores.append("daily_screen_time_hours")
+
+if considerar_addiction_level:
+	cols_previsores.append("addiction_level")
+
 col_classe = "addicted_label"
 
 previsores = base[cols_previsores].copy()
@@ -81,11 +96,22 @@ classe = base[col_classe].copy()
 
 # Ordem natural de severidade para as variáveis ordinais
 ordem_stress = ["Low", "Medium", "High"]
+ordem_addiction = ["None", "Mild", "Moderate", "Severe"]
 
-ordinal_encoder = OrdinalEncoder(categories=[ordem_stress])
-previsores[["stress_level"]] = ordinal_encoder.fit_transform(previsores[["stress_level"]])
+if considerar_addiction_level:
+	ordinal_encoder = OrdinalEncoder(categories=[ordem_stress, ordem_addiction])
+	previsores[["stress_level", "addiction_level"]] = ordinal_encoder.fit_transform(
+		previsores[["stress_level", "addiction_level"]]
+	)
+else:
+	ordinal_encoder = OrdinalEncoder(categories=[ordem_stress])
+	previsores[["stress_level"]] = ordinal_encoder.fit_transform(
+		previsores[["stress_level"]]
+	)
 
 previsores["stress_level"] = previsores["stress_level"].astype("int64")
+if considerar_addiction_level:
+	previsores["addiction_level"] = previsores["addiction_level"].astype("int64")
 
 
 # =============================================================================
@@ -109,14 +135,9 @@ previsores["academic_work_impact"] = previsores["academic_work_impact"].astype("
 # =============================================================================
 
 risk_count = classe.value_counts()
-print("Classe 0:", risk_count.get(0, 0))
-print("Classe 1:", risk_count.get(1, 0))
 
 undersample = RandomUnderSampler(random_state=0)
 previsores_balanceado, classe_balanceada = undersample.fit_resample(previsores, classe)
-
-print("\nDistribuição após undersampling:")
-print(classe_balanceada.value_counts())
 
 
 # =============================================================================
