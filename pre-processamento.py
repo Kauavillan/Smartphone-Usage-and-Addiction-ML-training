@@ -19,7 +19,6 @@ resumo = base.describe(include="all")
 # Colunas numéricas para tratamento
 colunas_numericas = [
 	"age",
-	"daily_screen_time_hours",
 	"social_media_hours",
 	"gaming_hours",
 	"work_study_hours",
@@ -34,7 +33,6 @@ colunas_categoricas = [
 	"gender",
 	"stress_level",
 	"academic_work_impact",
-	"addiction_level",
 ]
 
 # Regra simples de validação: valores numéricos negativos são inválidos
@@ -70,7 +68,6 @@ cols_previsores = [
 	"weekend_screen_time",
 	"stress_level",
 	"academic_work_impact",
-	"addiction_level",
 ]
 col_classe = "addicted_label"
 
@@ -84,15 +81,11 @@ classe = base[col_classe].copy()
 
 # Ordem natural de severidade para as variáveis ordinais
 ordem_stress = ["Low", "Medium", "High"]
-ordem_addiction = ["None", "Mild", "Moderate", "Severe"]
 
-ordinal_encoder = OrdinalEncoder(categories=[ordem_stress, ordem_addiction])
-previsores[["stress_level", "addiction_level"]] = ordinal_encoder.fit_transform(
-	previsores[["stress_level", "addiction_level"]]
-)
+ordinal_encoder = OrdinalEncoder(categories=[ordem_stress])
+previsores[["stress_level"]] = ordinal_encoder.fit_transform(previsores[["stress_level"]])
 
 previsores["stress_level"] = previsores["stress_level"].astype("int64")
-previsores["addiction_level"] = previsores["addiction_level"].astype("int64")
 
 
 # =============================================================================
@@ -156,9 +149,4 @@ scaler = StandardScaler()
 previsores_treinamento = scaler.fit_transform(previsores_treinamento)
 previsores_teste = scaler.transform(previsores_teste)
 
-print("\nShapes finais:")
-print("Treinamento previsores:", previsores_treinamento.shape)
-print("Teste previsores:", previsores_teste.shape)
-print("Treinamento classe:", classe_treinamento.shape)
-print("Teste classe:", classe_teste.shape)
 
