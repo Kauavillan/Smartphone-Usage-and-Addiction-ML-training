@@ -1,21 +1,12 @@
-####### Configuração das Redes Neurais ##################
-import matplotlib.pyplot as plt
-from sklearn.neural_network import MLPClassifier
+####### Configuração do SVM ##################
+from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, accuracy_score
 
 
-################## Classificação com Redes Neurais ##################
+################## Classificação com SVM ##################
 
 # Treinamento
-classificador = MLPClassifier(
-	verbose=False,
-	max_iter=1000,
-	tol=0.0001,
-	solver="sgd",
-	hidden_layer_sizes=[4],
-	activation="relu",
-	random_state=1,
-)
+classificador = SVC(kernel="sigmoid", C=0.9, gamma="auto", random_state=1)
 classificador.fit(previsores_treinamento, classe_treinamento)
 
 # Teste
@@ -29,11 +20,3 @@ matriz_teste = confusion_matrix(classe_teste, previsoes)
 previsoes_treinamento = classificador.predict(previsores_treinamento)
 acuracia_treinamento = accuracy_score(classe_treinamento, previsoes_treinamento)
 matriz_treinamento = confusion_matrix(classe_treinamento, previsoes_treinamento)
-
-# Plotagem do "Mapa de calor" dos pesos da primeira camada
-plt.imshow(classificador.coefs_[0], interpolation="none", cmap="viridis")
-plt.yticks(range(len(cols_previsores)), cols_previsores)
-plt.xlabel("Columns in weight matrix")
-plt.ylabel("Input feature")
-plt.colorbar()
-plt.show()

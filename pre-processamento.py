@@ -11,6 +11,10 @@ from imblearn.under_sampling import RandomUnderSampler
 considerar_daily_screen_time_hours = True
 considerar_addiction_level = False
 
+considerar_label_encoder = True
+considerar_variaveis_dummy = False
+considerar_padronizacao = True
+
 
 # =============================================================================
 #                         Leitura da base e resumo
@@ -118,16 +122,23 @@ if considerar_addiction_level:
 #      Transformar as variáveis categóricas (nominais) em variáveis numéricas
 # =============================================================================
 
-labelencoder_gender = LabelEncoder()
-previsores["gender"] = labelencoder_gender.fit_transform(previsores["gender"])
-previsores["gender"] = previsores["gender"].astype("int64")
+if considerar_variaveis_dummy:
+	previsores = pd.get_dummies(
+		previsores,
+		columns=["gender", "academic_work_impact"],
+		drop_first=False,
+		dtype="int64",
+	)
+elif considerar_label_encoder:
+	labelencoder_gender = LabelEncoder()
+	previsores["gender"] = labelencoder_gender.fit_transform(previsores["gender"])
+	previsores["gender"] = previsores["gender"].astype("int64")
 
-# academic_work_impact tem semântica binária (Yes/No), então LabelEncoder é suficiente
-labelencoder_impact = LabelEncoder()
-previsores["academic_work_impact"] = labelencoder_impact.fit_transform(
-	previsores["academic_work_impact"]
-)
-previsores["academic_work_impact"] = previsores["academic_work_impact"].astype("int64")
+	labelencoder_impact = LabelEncoder()
+	previsores["academic_work_impact"] = labelencoder_impact.fit_transform(
+		previsores["academic_work_impact"]
+	)
+	previsores["academic_work_impact"] = previsores["academic_work_impact"].astype("int64")
 
 
 # =============================================================================
@@ -166,8 +177,13 @@ previsores_treinamento, previsores_teste, classe_treinamento, classe_teste = tra
 #                     Padronização dos dados
 # =============================================================================
 
-scaler = StandardScaler()
-previsores_treinamento = scaler.fit_transform(previsores_treinamento)
-previsores_teste = scaler.transform(previsores_teste)
+if considerar_padronizacao:
+	if not previsores_treinamento.select_dtypes(exclude=["number"]).empty:
+		raise ValueError(
+			"Existem colunas categóricas sem codificação. Ative considerar_variaveis_dummy ou considerar_label_encoder."
+		)
+	scaler = StandardScaler()
+	previsores_treinamento = scaler.fit_transform(previsores_treinamento)
+	previsores_teste = scaler.transform(previsores_teste)
 
 

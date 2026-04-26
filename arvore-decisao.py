@@ -44,7 +44,7 @@ plt.show()
 
 classificador = DecisionTreeClassifier(
 	criterion="entropy",
-	max_depth=3,
+	max_depth=4,
 	random_state=0,
 )
 
