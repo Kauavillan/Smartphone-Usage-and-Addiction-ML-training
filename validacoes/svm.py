@@ -1,5 +1,6 @@
 # Classificador
 from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
 # Divisão dos dados em folds
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support
@@ -19,16 +20,31 @@ for indice_treinamento, indice_teste in kfold.split(previsores,
     #Melhor configuração do modelo
     classificador = SVC(kernel="sigmoid", C=0.9, gamma="auto", random_state=1)
 
+    X_treino = previsores.iloc[indice_treinamento]
+    X_teste = previsores.iloc[indice_teste]
+
+    # Padroniza por fold para evitar vazamento de dados
+    scaler = StandardScaler()
+    X_treino = scaler.fit_transform(X_treino)
+    X_teste = scaler.transform(X_teste)
+
     #  Treinamento
-    classificador.fit(previsores.iloc[indice_treinamento], classe_array[indice_treinamento])
+    classificador.fit(X_treino, classe_array[indice_treinamento])
     
     # teste
-    previsoes = classificador.predict(previsores.iloc[indice_teste])
+    previsoes = classificador.predict(X_teste)
     
     acuracia = accuracy_score(classe_array[indice_teste], previsoes)
     
-    metricas.append(precision_recall_fscore_support(classe_array[indice_teste], previsoes))
-    matrizes.append(confusion_matrix(classe_array[indice_teste], previsoes))
+    metricas.append(
+        precision_recall_fscore_support(
+            classe_array[indice_teste],
+            previsoes,
+            labels=[0, 1],
+            zero_division=0,
+        )
+    )
+    matrizes.append(confusion_matrix(classe_array[indice_teste], previsoes, labels=[0, 1]))
     acuracias.append(acuracia)
     
 ##################3 Resultado Final ####################
